@@ -1,5 +1,5 @@
 """
-    Multibody constraint implementations copied from dairlib for convenience:
+    Multibody constraint implementations translated to python from dairlib:
     https://github.com/DAIRLab/dairlib/tree/main/multibody/kinematic
 """
 
@@ -140,6 +140,7 @@ class ContactConstraint:
 class StackedConstraint:
     def __init__(self, constraints: List[DistanceConstraint | ContactConstraint]):
         self.constraints = constraints
+
     def evaluate(self, context):
         return np.concatenate(
             [c.evaluate(context) for c in self.constraints]
