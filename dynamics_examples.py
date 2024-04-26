@@ -3,7 +3,6 @@
  to perform useful multibody kinematics and dynamics computations
 """
 
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -39,6 +38,19 @@ def dynamics_example():
     loop = fourbar_linkage_constraints(plant)
     left_contact = contact_constraints(plant, 'left')
     right_contact = contact_constraints(plant, 'right')
+
+    # print out mardown tables listing the joint info
+    print('Positions:\n| Index | Name |')
+    for i, n in enumerate(position_names):
+        print(f'| {i} | {n} |')
+
+    print('Velocities:\n| Index | Name |')
+    for i, n in enumerate(velocity_names):
+        print(f'| {i} | {n} |')
+
+    print('Inputs:\n| Index | Name |')
+    for i, n in enumerate(actuator_names):
+        print(f'| {i} | {n} |')
 
     # At each time step in our data, calculate the terms in the manipulator equation
     #

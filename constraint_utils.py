@@ -1,5 +1,5 @@
 """
-    Multibody constraint implementations translated to python from dairlib:
+    Multibody Kinematic constraint implementations translated to python from dairlib:
     https://github.com/DAIRLab/dairlib/tree/main/multibody/kinematic
 """
 

@@ -21,9 +21,13 @@ from constraint_utils import (
 def make_cassie_model(urdf: str) -> Tuple[MultibodyPlant, Context]:
     """
     Builds a drake MultibodyPlant model of Cassie to use as a kinematics
-    calculator. Also provides a Context, the object used to store the state of the robot
+    calculator. Also provides a Context, the object used to store the state of the robot.
 
-    :param urdf: filoe path to the Cassie urdf
+    WARNING: This Cassie model is not suitable for simulation, as we do not add a distance constraint
+     to represent the four-bar linkage, and we initialize the plant as a continuous model, which would simulate
+     quite slowly
+
+    :param urdf: file path to the Cassie urdf
     :return: A tuple containing the plant and the plant's state (context)
     """
     plant = MultibodyPlant(0.0)
