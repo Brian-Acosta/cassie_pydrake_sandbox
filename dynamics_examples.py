@@ -65,7 +65,7 @@ def dynamics_example():
     # \lambda_{left}, \lambda_{right}, and \lambda_{loop} are the unknown constraint forces
     # corresponding to these Jacobians
 
-    n = 10000  # analyze the first ~10 seconds of the data file
+    n = 10000  # analyze the first ~5 seconds of the data file
     contact_forces = np.zeros((n, 2))
     for i in range(n):
         t = robot_output['t_x'][i]
