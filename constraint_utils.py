@@ -1,8 +1,3 @@
-"""
-    Multibody Kinematic constraint implementations translated to python from dairlib:
-    https://github.com/DAIRLab/dairlib/tree/main/multibody/kinematic
-"""
-
 import numpy as np
 from typing import Tuple, List
 from dataclasses import dataclass
@@ -37,7 +32,7 @@ class DistanceConstraint:
 
         assert self.distance > 0
 
-    def _calc_rel_pos(self, context: Context):
+    def _calc_rel_pos(self, context: Context) -> np.ndarray:
         world = self.plant.world_frame()
         pt_a_W = self.plant.CalcPointsPositions(
             context, self.point_a.frame, self.point_a.point, world).ravel()
@@ -46,7 +41,7 @@ class DistanceConstraint:
 
         return pt_a_W - pt_b_W
 
-    def _calc_rel_jac(self, context: Context):
+    def _calc_rel_jac(self, context: Context) -> np.ndarray:
         world = self.plant.world_frame()
         J_a = self.plant.CalcJacobianTranslationalVelocity(
             context, self.wrt, self.point_a.frame, self.point_a.point, world, world)
@@ -55,7 +50,7 @@ class DistanceConstraint:
 
         return J_a - J_b
 
-    def _calc_rel_bias(self, context: Context):
+    def _calc_rel_bias(self, context: Context) -> np.ndarray:
         world = self.plant.world_frame()
         J_a_dot_v = self.plant.CalcBiasTranslationalAcceleration(
             context, self.wrt, self.point_a.frame, self.point_a.point, world, world)
@@ -63,12 +58,12 @@ class DistanceConstraint:
             context, self.wrt, self.point_b.frame, self.point_b.point, world, world)
         return J_a_dot_v - J_b_dot_v
 
-    def evaluate(self, context: Context):
+    def evaluate(self, context: Context) -> np.ndarray:
         """ Evaluate the constraint """
         rel = self._calc_rel_pos(context)
         return np.array([np.linalg.norm(rel) - self.distance])
 
-    def jacobian(self, context: Context):
+    def jacobian(self, context: Context) -> np.ndarray:
         """
             Jacobian of ||pt_A - pt_B||, evaluated all in world frame, is
               (pt_A - pt_B)^T * (J_A - J_B) / ||pt_A - pt_B||
@@ -84,7 +79,7 @@ class DistanceConstraint:
 
         return rel_pos.T @ rel_jac / np.linalg.norm(rel_pos)
 
-    def jacobian_dot_times_v(self, context: Context):
+    def jacobian_dot_times_v(self, context: Context) -> np.ndarray:
         """
         From applying the chain rule to Jacobian, Jdot * v is
          ||(J_A - J_B) * v||^2/phi ...
@@ -102,8 +97,8 @@ class DistanceConstraint:
         phi_dot = self.jacobian(context) @ self.plant.GetVelocities(context).ravel()
         rel_vel = rel_jac @ self.plant.GetVelocities(context).ravel()
         return (rel_vel.T @ rel_vel / phi) + \
-               (rel_pos.T @ rel_bias / phi) - \
-               (phi_dot * rel_pos.T @ rel_vel / (phi * phi))
+            (rel_pos.T @ rel_bias / phi) - \
+            (phi_dot * rel_pos.T @ rel_vel / (phi * phi))
 
 
 class ContactConstraint:
@@ -111,13 +106,14 @@ class ContactConstraint:
         Constraint that a point remains fixed in the world.
         Everything is expressed in the world frame unless a different frame is provided
     """
-    def __init__(self, plant: MultibodyPlant, contact_point: PointOnFrame, frame_to_express_in: Frame=None):
+
+    def __init__(self, plant: MultibodyPlant, contact_point: PointOnFrame, frame_to_express_in: Frame = None):
         self.plant = plant
         self.contact = contact_point
         self.frame_E = frame_to_express_in if frame_to_express_in is not None else plant.world_frame()
         self.wrt = JacobianWrtVariable.kV
 
-    def evaluate(self, context: Context):
+    def evaluate(self, context: Context) -> np.ndarray:
         """
         :param context: state of the robot
         :return: the point of the point in the world
@@ -126,13 +122,13 @@ class ContactConstraint:
             context, self.contact.frame, self.contact.point, self.frame_E
         ).ravel()
 
-    def jacobian(self, context: Context):
+    def jacobian(self, context: Context) -> np.ndarray:
         return self.plant.CalcJacobianTranslationalVelocity(
             context, self.wrt, self.contact.frame, self.contact.point,
             self.plant.world_frame(), self.frame_E)
 
-    def jacobian_dot_times_v(self, context: Context):
-        self.plant.CalcBiasTranslationalAcceleration(
+    def jacobian_dot_times_v(self, context: Context) -> np.ndarray:
+        return self.plant.CalcBiasTranslationalAcceleration(
             context, self.wrt, self.contact.frame, self.contact.point,
             self.plant.world_frame(), self.frame_E).ravel()
 
@@ -141,17 +137,17 @@ class StackedConstraint:
     def __init__(self, constraints: List[DistanceConstraint | ContactConstraint]):
         self.constraints = constraints
 
-    def evaluate(self, context):
+    def evaluate(self, context: Context) -> np.ndarray:
         return np.concatenate(
             [c.evaluate(context) for c in self.constraints]
         )
 
-    def jacobian(self, context):
+    def jacobian(self, context: Context) -> np.ndarray:
         return np.vstack(
             [c.jacobian(context).reshape(-1, c.plant.num_velocities()) for c in self.constraints]
         )
 
-    def jacobian_dot_times_v(self, context):
+    def jacobian_dot_times_v(self, context: Context) -> np.ndarray:
         return np.concatenate(
             [c.jacobian_dot_times_v(context) for c in self.constraints]
         )

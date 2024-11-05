@@ -60,7 +60,7 @@ def make_cassie_model(urdf: str) -> Tuple[MultibodyPlant, Context]:
         joint_actuator = plant.get_mutable_joint_actuator(JointActuatorIndex(i))
         joint_actuator.set_default_rotor_inertia(rotor_inertias[i])
         joint_actuator.set_default_gear_ratio(gear_ratios[i])
-        assert(motor_joint_names[i] == joint_actuator.name())
+        assert (motor_joint_names[i] == joint_actuator.name())
 
     plant.Finalize()
     return plant, plant.CreateDefaultContext()
@@ -68,26 +68,25 @@ def make_cassie_model(urdf: str) -> Tuple[MultibodyPlant, Context]:
 
 def fourbar_linkage_constraints(plant: MultibodyPlant) -> StackedConstraint:
     left_rod_thigh_connection = PointOnFrame(
-       np.array([0, 0, 0.045]), plant.GetFrameByName("thigh_left")
+        np.array([0, 0, 0.045]), plant.GetFrameByName("thigh_left")
     )
     left_rod_heel_connection = PointOnFrame(
-       np.array([.11877, -.01, 0.0]), plant.GetFrameByName("heel_spring_left")
+        np.array([.11877, -.01, 0.0]), plant.GetFrameByName("heel_spring_left")
     )
     right_rod_thigh_connection = PointOnFrame(
-       np.array([0, 0, 0.045]), plant.GetFrameByName("thigh_right")
+        np.array([0, 0, 0.045]), plant.GetFrameByName("thigh_right")
     )
     right_rod_heel_connection = PointOnFrame(
-       np.array([.11877, -.01, 0.0]), plant.GetFrameByName("heel_spring_right")
+        np.array([.11877, -.01, 0.0]), plant.GetFrameByName("heel_spring_right")
     )
 
     return StackedConstraint([
-       DistanceConstraint(plant, left_rod_thigh_connection, left_rod_heel_connection,  0.5012),
-       DistanceConstraint(plant, right_rod_thigh_connection, right_rod_heel_connection, 0.5012)
+        DistanceConstraint(plant, left_rod_thigh_connection, left_rod_heel_connection, 0.5012),
+        DistanceConstraint(plant, right_rod_thigh_connection, right_rod_heel_connection, 0.5012)
     ])
 
 
-def contact_constraints(plant: MultibodyPlant, toe_name: str):
-
+def contact_constraints(plant: MultibodyPlant, toe_name: str) -> StackedConstraint:
     assert toe_name == "left" or toe_name == "right"
 
     front = PointOnFrame(

@@ -5,6 +5,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Tuple, List
 
 from cassie_utils import (
     make_cassie_model,
@@ -15,7 +16,7 @@ from cassie_utils import (
 from pydrake.multibody.all import MultibodyForces
 
 
-def load_data(filepath):
+def load_data(filepath: str) -> Tuple[np.ndarray, List[str], List[str], List[str]]:
     raw_data = np.load(filepath, allow_pickle=True)
     robot_output = raw_data['robot_output'].item()
     position_names = raw_data['position_names']
@@ -25,7 +26,7 @@ def load_data(filepath):
     return robot_output, position_names, velocity_names, actuator_names
 
 
-def dynamics_example():
+def dynamics_example() -> None:
     """
     Example which estimates contact and constraint forces based on the rest of the
      dynamics quantities. Note that we don't impose friction cone constraints, since this is just
@@ -38,19 +39,6 @@ def dynamics_example():
     loop = fourbar_linkage_constraints(plant)
     left_contact = contact_constraints(plant, 'left')
     right_contact = contact_constraints(plant, 'right')
-
-    # print out mardown tables listing the joint info
-    print('Positions:\n| Index | Name |')
-    for i, n in enumerate(position_names):
-        print(f'| {i} | {n} |')
-
-    print('Velocities:\n| Index | Name |')
-    for i, n in enumerate(velocity_names):
-        print(f'| {i} | {n} |')
-
-    print('Inputs:\n| Index | Name |')
-    for i, n in enumerate(actuator_names):
-        print(f'| {i} | {n} |')
 
     # At each time step in our data, calculate the terms in the manipulator equation
     #
@@ -110,11 +98,11 @@ def dynamics_example():
     plt.legend(['left', 'right'])
 
 
-def plot_measured_foot_speed():
-    '''
+def plot_measured_foot_speed() -> None:
+    """
     An example of using the foot contact constraint Jacobian.
     :return: None
-    '''
+    """
     datafile = 'data/mar_12_2024_log1.npz'
     robot_output, _, _, _ = load_data(datafile)
     plant, context = make_cassie_model('urdf/cassie_v2.urdf')
